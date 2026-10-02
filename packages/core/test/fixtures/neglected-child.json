@@ -1,0 +1,171 @@
+{
+  "state": {
+    "pet": {
+      "name": "Blobule",
+      "species": "blobule",
+      "stage": "child",
+      "ageHours": 5,
+      "weight": 5
+    },
+    "body": {
+      "hunger": 80,
+      "energy": 51,
+      "hygiene": 70,
+      "health": 100,
+      "sickness": 0
+    },
+    "care": {
+      "recentActions": [
+        {
+          "action": "play",
+          "minutesAgo": 302
+        }
+      ],
+      "careStreakHours": 5,
+      "neglectEvents": 3,
+      "timesSick": 1,
+      "timesDisciplined": 0
+    },
+    "lastInteraction": {
+      "action": "play",
+      "minutesAgo": 302
+    },
+    "minutesSinceYouLeft": 302
+  },
+  "answers": {
+    "mood": {
+      "type": "choice",
+      "choice": "lonely",
+      "confidence": 0.62,
+      "probabilities": {
+        "lonely": 0.66,
+        "bored": 0.19,
+        "content": 0.01,
+        "sick": 0,
+        "sleepy": 0.03,
+        "grumpy": 0.05,
+        "happy": 0,
+        "anxious": 0.06
+      }
+    },
+    "wants": {
+      "type": "choice",
+      "choice": "food",
+      "confidence": 0.9,
+      "probabilities": {
+        "cleaning": 0,
+        "play": 0.06,
+        "food": 0.92,
+        "medicine": 0,
+        "sleep": 0,
+        "attention": 0.02,
+        "nothing": 0
+      }
+    },
+    "urgency": {
+      "type": "score",
+      "score": 1.95,
+      "confidence": 0.74,
+      "legend": {
+        "0": "It can wait indefinitely",
+        "1": "It would like it reasonably soon",
+        "2": "It needs it now",
+        "3": "Real distress; it will be harmed if ignored"
+      },
+      "probabilities": {
+        "0": 0.01,
+        "1": 0.14,
+        "2": 0.75,
+        "3": 0.1
+      }
+    },
+    "reaction": {
+      "type": "choice",
+      "choice": "pleased",
+      "confidence": 0.52,
+      "probabilities": {
+        "annoyed": 0.01,
+        "upset": 0.01,
+        "pleased": 0.61,
+        "indifferent": 0.08,
+        "delighted": 0.29
+      }
+    },
+    "feels_neglected": {
+      "type": "noul",
+      "noul": 0.76
+    },
+    "is_overfed": {
+      "type": "noul",
+      "noul": 0.1
+    },
+    "is_getting_sick": {
+      "type": "noul",
+      "noul": 0.24
+    },
+    "affection": {
+      "type": "score",
+      "score": 1.79,
+      "confidence": 0.54,
+      "legend": {
+        "0": "Resents them",
+        "1": "Wary of them",
+        "2": "Neutral toward them",
+        "3": "Fond of them",
+        "4": "Devoted to them"
+      },
+      "probabilities": {
+        "0": 0.01,
+        "1": 0.36,
+        "2": 0.47,
+        "3": 0.16,
+        "4": 0
+      }
+    },
+    "ready_to_evolve": {
+      "type": "noul",
+      "noul": 0.16
+    },
+    "evolution_direction": {
+      "type": "choice",
+      "choice": "needy",
+      "confidence": 0.63,
+      "probabilities": {
+        "insatiable": 0.01,
+        "sweet": 0.07,
+        "stoic": 0.01,
+        "feral": 0.22,
+        "needy": 0.69
+      }
+    },
+    "care_efficiency": {
+      "type": "score",
+      "score": 0.61,
+      "confidence": 0.62,
+      "legend": {
+        "0": "Neglectful; needs go unmet for long stretches",
+        "1": "Erratic; sometimes attentive, often absent",
+        "2": "Adequate; needs are met eventually",
+        "3": "Attentive; needs are met promptly",
+        "4": "Flawlessly optimised; needs are met before they are even felt"
+      },
+      "probabilities": {
+        "0": 0.42,
+        "1": 0.56,
+        "2": 0.02,
+        "3": 0,
+        "4": 0
+      }
+    },
+    "is_spoiled": {
+      "type": "noul",
+      "noul": 0.4
+    }
+  },
+  "model": "jev-1.13.0",
+  "usage": {
+    "input_tokens": 1418,
+    "output_tokens": 408
+  },
+  "latencyMs": 225
+}

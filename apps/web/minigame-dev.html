@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minigame dev harness</title>
+<style>
+  body{margin:0;background:#120e2a;color:#ECE9FF;font:14px/1.4 system-ui,sans-serif;display:flex;flex-direction:column;height:100vh}
+  header{display:flex;flex-wrap:wrap;gap:8px;padding:8px;align-items:center}
+  select,button{font:inherit;padding:4px 10px;border-radius:8px;border:1px solid #3A2A6B;background:#1B1638;color:#ECE9FF}
+  #host{flex:1;margin:0 8px 8px;border-radius:18px;overflow:hidden;min-height:0;box-shadow:0 0 0 1px #3A2A6B}
+  #log{padding:0 10px 8px;font-family:ui-monospace,monospace;font-size:12px;min-height:1.4em}
+</style>
+</head>
+<body>
+<header>
+  <select id="game"><option>catch</option><option>rhythm</option><option>memory</option></select>
+  <select id="species"><option>blobule</option><option>jevling</option><option>placid</option><option>feral</option><option>needy</option><option>stoic</option><option>insatiable</option></select>
+  <button id="go">Restart</button>
+  <button id="dispose">Dispose early</button>
+</header>
+<div id="host"></div>
+<div id="log"></div>
+<script type="module">
+  import { mountMinigame, MINIGAMES } from "/src/minigames/index.ts";
+  const q = new URLSearchParams(location.search);
+  const $ = (id) => document.getElementById(id);
+  $("game").value = q.get("game") || "catch";
+  $("species").value = q.get("species") || "blobule";
+  let dispose = null;
+  function start() {
+    dispose?.();
+    $("log").textContent = "";
+    dispose = mountMinigame($("game").value, {
+      host: $("host"), species: $("species").value, mood: "happy",
+      done: (r) => { $("log").textContent = "done " + JSON.stringify(r); window.__done = (window.__done || 0) + 1; window.__last = r; },
+      sfx: (n) => { (window.__sfx ||= []).push(n); },
+    });
+  }
+  $("go").onclick = start;
+  $("dispose").onclick = () => { dispose?.(); dispose = null; };
+  $("game").onchange = start;
+  $("species").onchange = start;
+  window.__restart = start;
+  console.log(MINIGAMES.map((m) => m.title).join(", "));
+  start();
+</script>
+</body>
+</html>

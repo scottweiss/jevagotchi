@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jevagotchi creature gallery</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; background:#1B1638; color:#ECE9FF; font:14px/1.4 system-ui, sans-serif; padding:20px 24px 60px; }
+  h1 { font-size:18px; font-weight:650; margin:0 0 14px; }
+  h2 { font-size:13px; font-weight:600; margin:26px 0 8px; color:#b9b1e6; }
+  .top { display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start; }
+  .stagewrap { position:relative; }
+  #stage { border-radius:18px; background:radial-gradient(120% 90% at 50% 20%, #4a3a86 0%, #2a2158 60%, #1f1848 100%); display:block; }
+  .panel { display:grid; gap:10px; min-width:280px; max-width:520px; }
+  .row { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .row label { font-size:12px; color:#b9b1e6; min-width:64px; }
+  button, select { font:inherit; background:#3A2A6B; color:#ECE9FF; border:1px solid #5d4ba3; border-radius:8px; padding:5px 10px; cursor:pointer; }
+  button:hover { background:#4d3a8c; }
+  button.on { background:#38D6B8; color:#1B1638; border-color:#38D6B8; }
+  input[type=range] { width:140px; }
+  .grid { display:grid; grid-template-columns: 70px repeat(var(--cols), var(--cell)); gap:4px; align-items:center; }
+  .grid canvas { width:var(--cell); height:var(--cell); border-radius:10px; background:linear-gradient(#3a2d70,#281f57); }
+  .grid .lab { font-size:11px; color:#b9b1e6; text-align:center; }
+  .grid .rl { font-size:12px; color:#ECE9FF; }
+  .floor { position:absolute; left:50%; bottom:46px; width:180px; height:22px; margin-left:-90px; border-radius:50%; background:radial-gradient(closest-side, rgba(27,22,56,.55), transparent); pointer-events:none; }
+</style>
+</head>
+<body>
+<h1>Jevagotchi creature gallery</h1>
+<div class="top">
+  <div class="stagewrap"><canvas id="stage"></canvas><div class="floor"></div></div>
+  <div class="panel">
+    <div class="row"><label>species</label><span id="species"></span></div>
+    <div class="row"><label>mood</label><span id="moods"></span></div>
+    <div class="row"><label>status</label><span id="flags"></span></div>
+    <div class="row"><label>hunger</label><input type="range" id="hunger" min="0" max="100" value="20"><span id="hv">20</span></div>
+    <div class="row"><label>hygiene</label><input type="range" id="hygiene" min="0" max="100" value="90"><span id="yv">90</span></div>
+    <div class="row"><label>urgency</label><input type="range" id="urgency" min="0" max="100" value="20"><span id="uv">0.2</span></div>
+    <div class="row"><label>hue</label><input type="range" id="hue" min="0" max="100" value="50"></div>
+    <div class="row"><label>react</label><span id="reacts"></span></div>
+    <div class="row"><label>emits</label><span id="emits" style="font-size:12px;color:#b9b1e6"></span></div>
+  </div>
+</div>
+<h2>Every species by every state (click a cell to load it into the stage)</h2>
+<div class="grid" id="grid"></div>
+
+<script type="module">
+import { createCreature } from "/src/creatures/index.ts";
+
+const SPECIES = ["egg","blobule","jevling","placid","feral","needy","stoic","insatiable"];
+const STAGE_OF = { egg:"egg", blobule:"baby", jevling:"teen", placid:"adult", feral:"adult", needy:"adult", stoic:"adult", insatiable:"adult" };
+const MOODS = ["content","happy","bored","lonely","grumpy","anxious","sick","sleepy"];
+const STATES = [...MOODS.map(m => ({ id:m, mood:m })), { id:"asleep", asleep:true }, { id:"sick+", sick:true, mood:"sick" }, { id:"hungry", hunger:92, mood:"lonely" }, { id:"dirty", hygiene:8, mood:"grumpy" }, { id:"hesitant", hesitant:true, mood:"anxious" }, { id:"dead", mood:"dead" }];
+const REACTS = ["eat","play","scold","medicine","clean","poke","hatch","evolve","happy","refuse","die"];
+const dpr = Math.min(2, window.devicePixelRatio || 1);
+
+const base = (o = {}) => ({ species:"blobule", stage:"baby", mood:"content", asleep:false, sick:false, hunger:20, energy:70, hygiene:90, urgency:0.2, want:"nothing", hesitant:false, gaze:null, hueShift:0.5, ...o });
+
+function fit(cv, w, h) { cv.width = w * dpr; cv.height = h * dpr; cv.style.width = w + "px"; cv.style.height = h + "px"; }
+
+/* ---- main stage ---- */
+const stage = document.getElementById("stage");
+const SW = 420, SH = 340; fit(stage, SW, SH);
+const sctx = stage.getContext("2d");
+const hero = createCreature();
+const emits = {};
+const emitLog = [];
+hero.onEmit = (e) => { emits[e.kind] = (emits[e.kind] || 0) + 1; emitLog.push({ ...e, t: performance.now() }); };
+const S = base({ species:"placid", stage:"adult" });
+let mouse = null;
+stage.addEventListener("pointermove", (e) => { const r = stage.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; });
+stage.addEventListener("pointerleave", () => { mouse = null; });
+stage.addEventListener("pointerdown", (e) => { const r = stage.getBoundingClientRect(); if (hero.contains(e.clientX - r.left, e.clientY - r.top, SW/2, SH/2 - 10, 190)) hero.react("poke"); });
+
+function mk(container, items, key, cur) {
+  const el = document.getElementById(container);
+  for (const it of items) {
+    const b = document.createElement("button"); b.textContent = it; b.dataset.v = it;
+    b.onclick = () => { key(it); refresh(); };
+    el.appendChild(b);
+  }
+}
+mk("species", SPECIES, (v) => { S.species = v; S.stage = STAGE_OF[v]; });
+mk("moods", [...MOODS, "dead"], (v) => { S.mood = v; if (v !== "sick") S.sick = false; });
+const flags = document.getElementById("flags");
+for (const f of ["asleep","sick","hesitant"]) { const b = document.createElement("button"); b.textContent = f; b.dataset.f = f; b.onclick = () => { S[f] = !S[f]; refresh(); }; flags.appendChild(b); }
+const reacts = document.getElementById("reacts");
+function fire(r) {
+  if (r === "hatch" && S.species === "egg") { hero.react("hatch"); setTimeout(() => { S.species = "blobule"; S.stage = "baby"; refresh(); }, 1300); return; }
+  hero.react(r);
+}
+for (const r of REACTS) { const b = document.createElement("button"); b.textContent = r; b.onclick = () => fire(r); reacts.appendChild(b); }
+for (const [id, key, div, out] of [["hunger","hunger",1,"hv"],["hygiene","hygiene",1,"yv"],["urgency","urgency",100,"uv"],["hue","hueShift",100,null]]) {
+  const el = document.getElementById(id);
+  el.oninput = () => { S[key] = +el.value / div; if (out) document.getElementById(out).textContent = S[key]; };
+}
+function refresh() {
+  for (const b of document.querySelectorAll("#species button")) b.classList.toggle("on", b.dataset.v === S.species);
+  for (const b of document.querySelectorAll("#moods button")) b.classList.toggle("on", b.dataset.v === S.mood);
+  for (const b of document.querySelectorAll("#flags button")) b.classList.toggle("on", !!S[b.dataset.f]);
+}
+refresh();
+let paused = false;
+window.__g = { S, hero, refresh, fire, pause: (v) => { paused = v; },
+  step(sec) { for (let i = 0; i < sec * 60; i++) { hero.update(1 / 60, S); } sctx.setTransform(dpr, 0, 0, dpr, 0, 0); sctx.clearRect(0, 0, SW, SH); hero.draw(sctx, SW / 2, SH / 2 - 10, 190); } };
+
+/* ---- matrix ---- */
+const grid = document.getElementById("grid");
+const CELL = 112;
+grid.style.setProperty("--cols", STATES.length); grid.style.setProperty("--cell", CELL + "px");
+grid.appendChild(document.createElement("div"));
+for (const st of STATES) { const d = document.createElement("div"); d.className = "lab"; d.textContent = st.id; grid.appendChild(d); }
+const cells = [];
+for (const sp of SPECIES) {
+  const rl = document.createElement("div"); rl.className = "rl"; rl.textContent = sp; grid.appendChild(rl);
+  for (const st of STATES) {
+    const cv = document.createElement("canvas"); fit(cv, CELL, CELL);
+    const cr = createCreature();
+    const params = base({ species: sp, stage: STAGE_OF[sp], ...st, mood: st.mood ?? "content", hueShift: 0.5 });
+    cv.onclick = () => { Object.assign(S, params); refresh(); };
+    grid.appendChild(cv);
+    cells.push({ cv, ctx: cv.getContext("2d"), cr, params, sp, st });
+  }
+}
+
+/* ---- loop ---- */
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  S.gaze = mouse ? { x: mouse.x - SW / 2, y: mouse.y - (SH / 2 - 10) } : null;
+  if (!paused) {
+  hero.update(dt, S);
+  sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  sctx.clearRect(0, 0, SW, SH);
+  hero.draw(sctx, SW / 2, SH / 2 - 10, 190);
+  }
+  for (const c of cells) {
+    c.cr.update(dt, c.params);
+    c.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.ctx.clearRect(0, 0, CELL, CELL);
+    c.cr.draw(c.ctx, CELL / 2, CELL / 2 + 2, CELL * 0.66);
+  }
+  const now2 = performance.now();
+  while (emitLog.length && now2 - emitLog[0].t > 2500) emitLog.shift();
+  document.getElementById("emits").textContent = Object.entries(emits).map(([k, v]) => k + " " + v).join("  ");
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jevagotchi scene dev</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; height: 100%; background: #1B1638; color: #ECE9FF; font: 13px/1.3 Figtree, system-ui, sans-serif; overflow: hidden; }
+  #stage { position: fixed; inset: 0; }
+  #panel { position: fixed; top: 60px; right: 8px; width: 210px; max-height: calc(100vh - 180px); overflow: auto; padding: 10px; border-radius: 12px;
+    background: rgba(27,22,56,.86); backdrop-filter: blur(6px); display: grid; gap: 8px; }
+  #panel[hidden] { display: none; }
+  #panel label { display: grid; gap: 2px; }
+  #panel .row { display: flex; flex-wrap: wrap; gap: 4px; }
+  #panel button, #panel select, #panel input[type=text] { font: inherit; color: inherit; background: #3A2A6B; border: 0; border-radius: 6px; padding: 4px 7px; }
+  #panel button:hover { background: #4d3a8c; }
+  #panel input[type=range] { width: 100%; }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="c"></canvas></div>
+<div id="panel"></div>
+<script type="module" src="/src/scene/dev.ts"></script>
+</body>
+</html>

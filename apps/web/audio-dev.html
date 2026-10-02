@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><title>Jevagotchi soundboard</title>
+<style>body{font:14px system-ui;background:#1b1633;color:#eee;padding:16px}button{margin:3px;padding:8px 12px;border-radius:8px;border:0;background:#8FA8FF;color:#123}label{display:block;margin:6px 0}h3{margin:14px 0 4px}</style>
+<h1>Audio soundboard</h1>
+<button id="unlock">Unlock audio</button> <button id="mute">Toggle mute</button> <button id="duck">Duck 1.5s</button>
+<label>Volume <input id="vol" type="range" min="0" max="1" step="0.01" value="0.8"></label>
+<h3>SFX</h3><div id="sfx"></div>
+<h3>Voice</h3><div id="voice"></div>
+<h3>Ambience</h3>
+<label>timeOfDay <input id="tod" type="range" min="0" max="1" step="0.01" value="0.5"></label>
+<label>tension <input id="ten" type="range" min="0" max="1" step="0.01" value="0"></label>
+<label><input id="asleep" type="checkbox"> asleep</label>
+<pre id="log"></pre>
+<script type="module">
+import { audio, SFX_NAMES, renderOffline } from "/src/audio.ts";
+window.audioDev = { audio, SFX_NAMES, renderOffline };
+const $ = (id) => document.getElementById(id);
+$("unlock").onclick = () => audio.unlock();
+$("mute").onclick = () => { audio.setMuted(!audio.isMuted()); $("mute").textContent = audio.isMuted() ? "Unmute" : "Mute"; };
+$("duck").onclick = () => audio.duck(1500);
+$("vol").oninput = (e) => audio.setVolume(+e.target.value);
+for (const n of SFX_NAMES) { const b = document.createElement("button"); b.textContent = n; b.onclick = () => { audio.unlock(); audio.sfx(n); }; $("sfx").append(b); }
+const species = ["baby","placid","feral","needy","stoic","insatiable"];
+for (const k of ["happy","sad","grumpy","sleepy","excited"]) for (const s of species) { const b = document.createElement("button"); b.textContent = k+"/"+s; b.onclick = () => { audio.unlock(); audio.voice(k, s); }; $("voice").append(b); }
+const amb = () => audio.setAmbience({ timeOfDay: +$("tod").value, asleep: $("asleep").checked, tension: +$("ten").value });
+for (const id of ["tod","ten","asleep"]) $(id).oninput = amb;
+</script>
